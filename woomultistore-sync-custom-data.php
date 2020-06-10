@@ -1,9 +1,9 @@
 <?php
 
 /**
- * WooCommerce Multistore Sync Custom Metadata Add-on
+ * WooMultistore Sync Custom Metadata Add-on
  *
- * This is a compability plugin to sync metadata created by Wholesale Price plugin for WooCommerce
+ * Compatibility plugin to sync custom metadata.
  *
  * @link              https://woomultistore.com/
  * @since             1.0.0
@@ -56,11 +56,26 @@ class Woocommerce_Multistore_Sync_Custom_Meta {
 	 */
 	public function __construct() {
 		$this->whitelist = array(
-			'stock_hengelo',
-			'stock_deventer',
+			'brand',
+			'merchantproductno',
+			'shipping_time',
+			'merchant',
+			'image_urls',
+			'category_trail',
+			'parent_id',
+			'type',
+			'wc_type',
+			'pf_color',
+			'pf_size',
+			'pf_dimensions',
+			'pf_weight',
+			'pf_volume',
+			'pf_version',
+			'pf_gender',
+			'pf_strength',
 		);
 
-		add_filter('WOO_MSTORE_admin_product/slave_product_meta_to_update', array($this, 'sync_whitelist'), PHP_INT_MAX, 2);
+		add_filter( 'WOO_MSTORE_admin_product/slave_product_meta_to_update', array( $this, 'sync_whitelist' ), PHP_INT_MAX, 2 );
 	}
 
 	/**
@@ -69,10 +84,9 @@ class Woocommerce_Multistore_Sync_Custom_Meta {
 	 * @since    1.0.0
 	 * @return  array array of metada key and meta value.
 	 */
-	public function sync_whitelist($meta_data, $data) {
-		foreach( $this->whitelist as $whitelisted_metakey )
-		{
-			$meta_value = $data['master_product']->get_meta($whitelisted_metakey, true); 
+	public function sync_whitelist( $meta_data, $data ) {
+		foreach ( $this->whitelist as $whitelisted_metakey ) {
+			$meta_value                        = $data['master_product']->get_meta( $whitelisted_metakey, true );
 			$meta_data[ $whitelisted_metakey ] = $meta_value;
 		}
 
