@@ -6,14 +6,14 @@
  * Compatibility plugin to sync custom metadata.
  *
  * @link              https://woomultistore.com/
- * @since             1.0.0
+ * @since             1.0.1
  * @package           Woocommerce_Multistore_Usermeta_Sync
  *
  * @wordpress-plugin
  * Plugin Name:       WooCommerce Multistore Sync Custom Metadata Add-on
  * Plugin URI:        https://woomultistore.com
  * Description:       This is a compability plugin to sync user-defined metadata
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Lykke Media AS
  * Author URI:        https://woomultistore.com/
  * License:           GPL-2.0+
@@ -56,30 +56,18 @@ class Woocommerce_Multistore_Sync_Custom_Meta {
 	 */
 	public function __construct() {
 		$this->whitelist = array(
-			'brand',
-			'merchantproductno',
-			'shipping_time',
-			'merchant',
-			'image_urls',
-			'category_trail',
-			'parent_id',
-			'type',
-			'wc_type',
-			'pf_color',
-			'pf_size',
-			'pf_dimensions',
-			'pf_weight',
-			'pf_volume',
-			'pf_version',
-			'pf_gender',
-			'pf_strength',
+			'my_white_listed_metadata_key',
 		);
 
-		add_filter( 'WOO_MSTORE_admin_product/slave_product_meta_to_update', array( $this, 'sync_whitelist' ), PHP_INT_MAX, 2 );
+		if ( is_multisite() ) {
+			add_filter( 'WOO_MSTORE_admin_product/slave_product_meta_to_update', array( $this, 'sync_whitelist' ), PHP_INT_MAX, 2 );
+		} else {
+			add_filter( 'WOO_MSTORE_SYNC/process_json/meta', array( $this, 'sync_whitelist_standalone' ), PHP_INT_MAX, 3 );
+		}
 	}
 
 	/**
-	 * Syncs the whitelisted metadata
+	 * Syncs the whitelisted metadata for multisite
 	 *
 	 * @since    1.0.0
 	 * @return  array array of metada key and meta value.
@@ -91,6 +79,26 @@ class Woocommerce_Multistore_Sync_Custom_Meta {
 		}
 
 		return $meta_data;
+	}
+
+
+	/**
+	 * Sync metadata on regular WordPress site.
+	 *
+	 * @since 1.0.1
+	 *
+	 * @param mixed $_whitelisted_meta
+	 * @param mixed $product_id
+	 * @param mixed $wc_product
+	 * @return void
+	 */
+	public function sync_whitelist_standalone( $_whitelisted_meta, $product_id, $wc_product ) {
+		foreach ( $this->whitelist as $whitelisted_metakey ) {
+			$meta_value                        = get_post_meta( $product_id, $whitelisted_metakey, true );
+			$_whitelisted_meta[ $whitelisted_metakey ] = $meta_value;
+		}
+
+		return $_whitelisted_meta;
 	}
 }
 
